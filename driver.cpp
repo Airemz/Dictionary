@@ -5,105 +5,124 @@
 #include <fstream>
 #include "tokenize.h"
 
-//./spellcheck.out < inputs/test01.in > my_outputs/mtest01.out
+// For testing:
+//./tokenize.out < inputs/test01.in > my_outputs/mtest01.out
 // Add -g to cxxflags in make file
-//valgrind --leak-check=full --show-leak-kinds=all ./spellcheck.out <inputs/test03.in 
-
-// see istringstream to parse inputs
+//valgrind --leak-check=full --show-leak-kinds=all ./tokenize.out <inputs/test03.in 
+//valgrind --leak-check=full --show-leak-kinds=all ./tokenize.out 
 
 int main(){
 
+    // Create the dictionary class which creates a nullptr hashmap and vector
     Dictionary *unnecesarily_heavy_book = new Dictionary;
 
+    // infinite loop until exit function call
     while (true){
 
-        // load not working + comments + static cast 
-
-        // Receive User input
+        // Receive User input and seperate ino command and parameter
         std::string user_input, command, parameter;
         std::getline(std::cin, user_input);
         std::istringstream iss(user_input);
         iss >> command >> parameter;
-        
-        // Call appropriate functions based on input
 
-        // Load: Open given file and extract words until end. Output success after.
+        // Create: create a hashmap of given size, will also create a new vector class of arbitrary size
         if (command == "create") {
-
-            unnecesarily_heavy_book->create(std::stoi(parameter));
+            // Convert the parameter into an integer and pass into function by reference
+            unsigned int size = std::stoi(parameter);
+            unnecesarily_heavy_book->create(size);
             std::cout << "success" << std::endl;
         }
 
-        // Exit: calls clear function, then call the destructor to delete the root
+        // Insert: insert a word into the hashmap and vector classes
         else if (command == "insert") {
 
-            if(unnecesarily_heavy_book->insert(parameter)){
-
-                unnecesarily_heavy_book->insert(parameter);
-                std::cout << "success" << std::endl;
-            } 
+            // Insert a word and output success, if unable to insert a word the function will return false and failure will be outputted instead
+            if(unnecesarily_heavy_book->insert(parameter)){std::cout << "success" << std::endl;} 
             
             else{std::cout << "failure" << std::endl;}
 
         }
 
-        // 
+        // Load: Open given file and extract words last whitespace, cout success a word was inserted, else failure
         else if (command == "load") {
-            std::ifstream file(parameter);
-            bool flag;
 
+            // Initialize variables for parsing through file and a flag which will check if a word was inserted into the hashmap
+            std::ifstream file(parameter);
+            bool flag = false;
             std::string word;
-            while (file >> word){
-                if(unnecesarily_heavy_book->insert(word)){flag = true;}
-                unnecesarily_heavy_book->insert(word);
-            }
+
+            // Itterate through all words in the file, if any words were inserted, update the flag
+            while (file >> word){if (unnecesarily_heavy_book->insert(word)){flag = true;}}
             
+            // Close the file so other files can be read
+            file.close();
+
+            // Check if any words were inserted and output accordingly
             if (flag == true){std::cout << "success" << std::endl;}
             else{std::cout << "failure" << std::endl;}
         }
 
-        // Clear: delete all the words in the trie,
+        // Tok: return the token associated with given word.
         else if (command == "tok") {
             std::cout << unnecesarily_heavy_book->tok(parameter) << std::endl;
         }
 
-        // Insert: extract the word from input and add the word to the tree if possible
+        // Ret: return the word associated with given token. Must conver the string to integer first and pass by reference
         else if (command == "ret") {
-            std::cout << unnecesarily_heavy_book->ret(std::stoi(parameter)) << std::endl;
+            unsigned int token = std::stoi(parameter);
+            std::cout << unnecesarily_heavy_book->ret(token) << std::endl;
         }
 
-        // Prefix: extract word and check how many words its a prefix for
+        // Tok_all: return the tokens associated with given words.
         else if (command == "tok_all") {
+
+            // Accounting for the first given parameter
             std::cout << unnecesarily_heavy_book->tok(parameter) << " ";
 
             while (iss >> parameter){
+                
+                // output all tokens with spaces inbetween 
                 std::cout << unnecesarily_heavy_book->tok(parameter) << " ";
             }
 
+            // end the line for next function call
             std::cout << std::endl;
         }
 
-        // Erase: extract word from input and delete it from the trie reccursivly
+        // Tok_all: return the words associated with given tokens.
         else if (command == "ret_all") {
-            std::cout << unnecesarily_heavy_book->ret(std::stoi(parameter)) << " ";
+
+            // Accounting for the first given parameter
+            unsigned int token = std::stoi(parameter);
+            std::cout << unnecesarily_heavy_book->ret(token) << " ";
 
             while (iss >> parameter){
-                std::cout << unnecesarily_heavy_book->ret(std::stoi(parameter)) << " ";
-            }
 
+                // output all words with spaces inbetween, converting to integer first since the function is pass by reference
+                unsigned int token = std::stoi(parameter);
+                std::cout << unnecesarily_heavy_book->ret(token) << " ";
+            }
+            
+            // end the line for next function call
             std::cout << std::endl;
         }
 
-        // Print: prints all words in the trie
+        // Print: prints all words in the given hashmap index
         else if (command == "print") {
-            if (!unnecesarily_heavy_book->print(std::stoi(parameter)).empty()){
-                std::cout << unnecesarily_heavy_book->print(std::stoi(parameter)) << std::endl;
+
+            // Convert the string to int first since the function is pass by reference
+            unsigned int index_k = std::stoi(parameter);
+
+            // If there are no words at given index, do nothing
+            if (!unnecesarily_heavy_book->print(index_k).empty()){
+                std::cout << unnecesarily_heavy_book->print(index_k) << std::endl;
             }
         }
 
-        // Spellcheck: will try correcting a given word with a word in a trie if possible
+        // Exit: call the dictionary destructor and return 0
         else if (command == "exit") {
             delete unnecesarily_heavy_book;
+            unnecesarily_heavy_book = nullptr;
             return 0;
         }
     }
