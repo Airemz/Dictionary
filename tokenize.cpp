@@ -63,8 +63,8 @@ bool HashMap::hashmap_insert(std::string &key, unsigned int &token){
         }
     }
 
-    // If the word does not exist, then push a pair of the word and corresponding token at the end of the linked list at its appropriate index (external chaining)
-    table[hash_value].push_back(std::make_pair(key, token));
+    // If the word does not exist, then push a pair of the word and corresponding token at the front of the linked list at its appropriate index (external chaining)
+    table[hash_value].push_front(std::make_pair(key, token));
 
     // Updating the load factor using stact_cast so that the precision is accurate
     key_value_pairs++;
@@ -103,7 +103,7 @@ void HashMap::hashmap_expand(){
     for (unsigned int index = 0; index < old_size; index++){
         for (auto& pair : table[index]){
             unsigned int hash_value = hash(pair.first);
-            new_table[hash_value].push_back(std::make_pair(pair.first, pair.second));
+            new_table[hash_value].push_front(std::make_pair(pair.first, pair.second));
         }
     }
 
@@ -162,15 +162,16 @@ bool Dictionary::insert(std::string& word){
     // Initialize our token variable since the function is pass by reference
     // The token is the last element in our array, since we added an empty string, we do not need to subtract by 1
     unsigned int token = dictionary_vector->array->size();
+    
+    // Check if the load factor has been exceeded before insertion
+    if (dictionary_hashmap->load_factor >= 0.8){dictionary_hashmap->hashmap_expand();}
 
     // Insert the word into the hashmap, if unable to, if statement will be false
     if (dictionary_hashmap->hashmap_insert(word, token)){
 
         // Insert the word into the vector
         dictionary_vector->array->push_back(word);
-
-        // Check if the load factor has been exceeded following insertion
-        if (dictionary_hashmap->load_factor >= 0.8){dictionary_hashmap->hashmap_expand();}
+        
         return true;
     }
 
